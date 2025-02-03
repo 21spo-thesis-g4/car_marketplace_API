@@ -1,69 +1,87 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
+import express from "express";
+import dotenv from "dotenv";
+import bcrypt from "bcrypt";
+import cors from "cors";
+import loginRoutes  from "./routes/login.js"; // Ensure the path is correct
+import { authenticateToken } from "./middleware/auth.js"; // Import the auth middleware
+import { connectToDatabase } from "./database.js"; // ✅ Import database connection
+
+dotenv.config();
 
 const app = express();
-const PORT = 4000; // You can change the port if needed
+const PORT = process.env.PORT || 4000;
+
+
+// Test database connection at startup
+connectToDatabase()
+  .then(() => console.log(" Database ready!"))
+  .catch((err) => console.error(" Database connection error:", err));
 
 // Middleware
 app.use(cors({
-    origin: 'http://localhost:3000' // Allow requests from the React app
-  }));
-  
-app.use(bodyParser.json());
+    origin: process.env.CLIENT_ORIGIN || 'http://localhost:3000'
+}));
+app.use(express.json());
 
-// Simulated database (in-memory storage for items)
-let items = [
-    { id: 1, name: 'Item 1', description: 'Description of Item 1' },
-    { id: 2, name: 'Item 2', description: 'Description of Item 2' }
-];
-let idCounter = 1;
+// Use the login route (this will handle /login)
+app.use('/auth', loginRoutes)
+
+// Protected route
+app.get('/protected', authenticateToken, (req, res) => {
+    res.json({ message: 'This is a protected route', user: req.user });
+  });
+
+// Simulated database
+const users = []; // In-memory user storage
 
 // Routes
 
-// CREATE (POST /items)
-app.post('/items', (req, res) => {
-  const { name, description } = req.body;
-  if (!name || !description) {
-    return res.status(400).json({ message: 'Name and description are required' });
-  }
-  const newItem = { id: idCounter++, name, description };
-  items.push(newItem);
-  res.status(201).json(newItem);
+app.get('/register', (req, res) => {
+  res.send('Register endpoint is working. Use POST to create an account.');
 });
 
-// API Routes
-app.get('/items', (req, res) => {
-    
-    res.json(items);
-  });
+// CREATE ACCOUNT (POST /register)
+app.post('/register', async (req, res) => {
+    const { email, password, role = "user", adminKey } = req.body;
 
-// READ ONE (GET /items/:id)
-app.get('/items/:id', (req, res) => {
-  const item = items.find(i => i.id === parseInt(req.params.id));
-  if (!item) {
-    return res.status(404).json({ message: 'Item not found' });
-  }
-  res.json(item);
-});
-
-// DELETE - DELETE /items/:id
-app.delete('/items/:id', (req, res) => {
-    const itemId = parseInt(req.params.id);
-    const itemIndex = items.findIndex(i => i.id === itemId);
-  
-    if (itemIndex === -1) {
-      return res.status(404).json({ message: 'Item not found' });
+    if (!email || !password) {
+        return res.status(400).json({ message: 'Email and password are required' });
     }
-  
-    // Remove the item from the array
-    items.splice(itemIndex, 1);
-    res.status(204).send();  // Send a 204 No Content response
-  });
-  
-  
+
+    // Validate role
+    const validRoles = ["user", "admin"];
+    if (!validRoles.includes(role)) {
+        return res.status(400).json({ message: 'Invalid role' });
+    }
+
+    // Check if the email is already registered
+    const existingUser = users.find(user => user.email === email);
+    if (existingUser) {
+        return res.status(400).json({ message: 'Email is already registered' });
+    }
+
+    // Prevent arbitrary admin registration
+    if (role === "admin" && adminKey !== process.env.ADMIN_SECRET) {
+      console.log('Admin Secret:', process.env.ADMIN_SECRET);
+        return res.status(403).json({ message: 'Invalid admin key' });
+    }
+    
+    try {
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Create a new user
+        const newUser = { id: users.length + 1, email, password: hashedPassword, role };
+        users.push(newUser);
+
+        res.status(201).json({ message: 'Account created successfully', userId: newUser.id, role: newUser.role });
+    } catch (error) {
+        console.error('Error creating account:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
 
 // Start Server
 app.listen(PORT, () => {
-  console.log(`API server running on http://localhost:${PORT}`);
+    console.log(`API server running on http://localhost:${PORT}`);
 });
