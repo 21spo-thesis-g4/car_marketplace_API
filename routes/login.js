@@ -1,61 +1,52 @@
 import express from "express";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import dotenv from "dotenv";
+import sql from "mssql";
+import jwt from "jsonwebtoken";
+import { connectToDatabase } from "../database.js";
 
-dotenv.config();
+const router = express.Router();
 
-const router = express.Router(); // Correct way to create a router
+router.post("/login", async (req, res) => {
+  console.log("Login request received:", req.body);
 
-// Example users array (replace with actual database)
-let users = [
-  {
-    id: 1,
-    email: "test@example.com",
-    password: bcrypt.hashSync("password123", 10), // Hashing the password for security
-    role: "user",
-  },
-  {
-    id: 2,
-    email: "admin@example.com",
-    password: bcrypt.hashSync("adminpassword", 10),
-    role: "admin",
-  },
-];
-
-//  Login Route
-router.post("/login", (req, res) => {
   const { email, password } = req.body;
 
-  // Validate email and password presence
   if (!email || !password) {
     return res.status(400).json({ message: "Email and password are required" });
   }
 
-  // Find the user by email
-  const user = users.find((u) => u.email === email);
+  try {
+    const pool = await connectToDatabase();
 
-  if (!user) {
-    return res.status(401).json({ message: "Invalid email or password" });
+    const userResult = await pool
+      .request()
+      .input("Email", sql.NVarChar, email)
+      .query("SELECT UserID, Name, Email, Phone, PasswordHash, Role FROM Users WHERE Email = @Email");
+
+    if (userResult.recordset.length === 0) {
+      return res.status(400).json({ message: "Invalid credentials" }); // ✅ This is valid now
+    }
+
+    const user = userResult.recordset[0];
+
+    // Check password
+    const passwordMatch = await bcrypt.compare(password, user.PasswordHash);
+    if (!passwordMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user.UserID, role: user.Role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    res.status(200).json({ token, user: { id: user.UserID, name: user.Name, role: user.Role } });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
-
-  // Validate password
-  const passwordMatch = bcrypt.compareSync(password, user.password);
-  if (!passwordMatch) {
-    return res.status(401).json({ message: "Invalid email or password" });
-  }
-
-  // Create JWT token
-  const token = jwt.sign(
-    { userId: user.id, role: user.role },
-    process.env.JWT_SECRET, // Ensure JWT_SECRET is in .env
-    { expiresIn: "1h" }
-  );
-
-  res.json({
-    message: "Login successful",
-    token,
-  });
 });
 
-export default router; // Correct export syntax for ES Modules
+export default router;
