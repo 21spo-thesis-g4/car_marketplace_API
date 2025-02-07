@@ -33,8 +33,13 @@ app.use("/admin", adminRoutes);
 
 // Protected route
 app.get('/protected', authenticateToken, (req, res) => {
-    res.json({ message: 'This is a protected route', user: req.user });
+  const { email, name, role } = req.user; // Retrieve user info from the token
+  
+  res.json({
+    message: "Welcome to your dashboard",
+    user: { email, name, role }
   });
+});
 
 // Start Server
 app.listen(PORT, () => {

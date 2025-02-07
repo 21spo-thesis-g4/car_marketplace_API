@@ -37,12 +37,17 @@ router.post("/login", async (req, res) => {
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user.UserID, role: user.Role },
+      { 
+        userId: user.UserID, 
+        role: user.Role, 
+        email: user.Email,
+        name: user.Name  
+      },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
-    res.status(200).json({ token, user: { id: user.UserID, name: user.Name, role: user.Role } });
+    res.status(200).json({ token, user: { id: user.UserID, name: user.Name, role: user.Role, email: user.Email } });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "Internal server error" });
