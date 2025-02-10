@@ -6,6 +6,7 @@ import registerRoutes from "./routes/register.js"; // Import register route
 import { authenticateToken } from "./middleware/auth.js"; // Import the auth middleware
 import { connectToDatabase } from "./database.js"; // ✅ Import database connection
 import adminRoutes from "./routes/admin.js";
+import optionsRoutes from "./routes/options.js";
 
 dotenv.config();
 
@@ -30,6 +31,8 @@ app.use('/auth', loginRoutes)
 app.use("/register", registerRoutes); // Mount register routes
 
 app.use("/admin", adminRoutes);
+
+app.use("/api/options", optionsRoutes)
 
 // Protected route
 app.get('/protected', authenticateToken, (req, res) => {
