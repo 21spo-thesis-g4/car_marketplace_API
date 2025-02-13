@@ -5,7 +5,7 @@ metadata:
   labels:
     app: backend
 spec:
-  replicas: 2  # Podien määrä
+  replicas: 1  # Podien määrä
   selector:
     matchLabels:
       app: backend
@@ -16,13 +16,26 @@ spec:
     spec:
       containers:
       - name: backend
-        image: carmarketplaceaksregistry.azurecr.io/car-marketplace-backend:latest  # ACR:n Docker-kuva
+        image: carmarketplaceaksregistry.azurecr.io/car-marketplace-backend:latest
+        imagePullPolicy: Always
         ports:
-        - containerPort: 4000  # Portti, jota sovellus kuuntelee
-        env:  # Ympäristömuuttujat
+        - containerPort: 4000
+        env:
         - name: NODE_ENV
           value: "production"
-        resources:  # Resurssirajoitukset (valinnainen)
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 4000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 4000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
           limits:
             memory: "256Mi"
             cpu: "500m"
