@@ -4,6 +4,64 @@ import { connectToDatabase } from "../database.js";
 
 const router = express.Router();
 
+// Fetch all vehicle makers (brands)
+router.get('/makers', async (req, res) => {
+    try {
+        await connectToDatabase();
+
+        // Fetch MakeName from Makes table
+        const result = await new sql.Request().query("SELECT MakeName FROM Makes ORDER BY MakeName ASC");
+
+        // Extract only MakeName into a simple array
+        const makersList = result.recordset.map(row => row.MakeName);
+
+        res.json(makersList); // Return a clean array
+    } catch (err) {
+        console.error("Error fetching vehicle makers:", err);
+        res.status(500).send("Server error");
+    }
+});
+
+router.get('/models/:makeID', async (req, res) => {
+    try {
+        await connectToDatabase();
+        const { makeID } = req.params; // Get MakeID from URL
+
+        // Fetch models based on MakeID
+        const result = await new sql.Request()
+            .input("makeID", sql.Int, makeID)
+            .query("SELECT ModelID, ModelName FROM Models WHERE MakeID = @makeID ORDER BY ModelName ASC");
+
+        res.json(result.recordset); // Send list of models
+    } catch (err) {
+        console.error("Error fetching models:", err);
+        res.status(500).send("Server error");
+    }
+});
+
+// Get all vehicle types
+router.get('/vehicletypes', async (req, res) => {
+    try {
+        await connectToDatabase();
+        const result = await new sql.Request().query("SELECT TypeID, TypeName FROM VehicleTypes ORDER BY TypeName ASC");
+        res.json(result.recordset);
+    } catch (err) {
+        console.error("Error fetching vehicle types:", err);
+        res.status(500).send("Server error");
+    }
+});
+
+router.get('/subtypes', async (req, res) => {
+    try {
+        await connectToDatabase();
+        const result =await new sql.Request().query("SELECT SubTypeID, Name from SubTypes ORDER BY Name ASC");
+        res.json(result.recordset);
+    } catch (err) {
+        console.error("Error fetching subtypes", err);
+        res.status(500).send("Server Error");
+    }
+})
+
 // Search endpoint
 router.get('/search', async (req, res) => {
     try {
