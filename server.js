@@ -4,7 +4,7 @@ import cors from "cors";
 import loginRoutes  from "./routes/login.js"; // Ensure the path is correct
 import registerRoutes from "./routes/register.js"; // Import register route
 import { authenticateToken } from "./middleware/auth.js"; // Import the auth middleware
-import { connectToDatabase } from "./database.js"; // ✅ Import database connection
+import { connectToDatabase } from "./database.js"; //  Import database connection
 import adminRoutes from "./routes/admin.js";
 import optionsRoutes from "./routes/options.js";
 
