@@ -10,12 +10,9 @@ router.get('/makers', async (req, res) => {
         await connectToDatabase();
 
         // Fetch MakeName from Makes table
-        const result = await new sql.Request().query("SELECT MakeName FROM Makes ORDER BY MakeName ASC");
+        const result = await new sql.Request().query("SELECT MakeName, MakeID FROM Makes ORDER BY MakeName ASC");
 
-        // Extract only MakeName into a simple array
-        const makersList = result.recordset.map(row => row.MakeName);
-
-        res.json(makersList); // Return a clean array
+        res.json(result.recordset); // Return a clean array
     } catch (err) {
         console.error("Error fetching vehicle makers:", err);
         res.status(500).send("Server error");
