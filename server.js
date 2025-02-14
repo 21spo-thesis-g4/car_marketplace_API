@@ -7,6 +7,7 @@ import { authenticateToken } from "./middleware/auth.js"; // Import the auth mid
 import { connectToDatabase } from "./database.js"; //  Import database connection
 import adminRoutes from "./routes/admin.js";
 import optionsRoutes from "./routes/options.js";
+import carsRoutes from "./routes/cars.js"
 
 dotenv.config();
 
@@ -33,6 +34,8 @@ app.use("/register", registerRoutes); // Mount register routes
 app.use("/admin", adminRoutes);
 
 app.use("/api/options", optionsRoutes)
+
+app.use("/cars", carsRoutes);
 
 // Protected route
 app.get('/protected', authenticateToken, (req, res) => {
