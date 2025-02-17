@@ -7,3 +7,5 @@ Dockerfile
 logs
 tests
 .env
+*.log
+coverage
