@@ -1,72 +1,60 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import loginRoutes  from "./routes/login.js"; // Ensure the path is correct
+import registerRoutes from "./routes/register.js"; // Import register route
+import { authenticateToken } from "./middleware/auth.js"; // Import the auth middleware
+import { connectToDatabase } from "./database.js"; //  Import database connection
+import adminRoutes from "./routes/admin.js";
+import optionsRoutes from "./routes/options.js";
+import carsRoutes from "./routes/cars.js"
+
+dotenv.config();
 
 const app = express();
-const PORT = 4000; // You can change the port if needed
+const PORT = process.env.PORT || 4000;
+
+
+// Test database connection at startup
+connectToDatabase()
+  .then(() => console.log(" Database ready!"))
+  .catch((err) => console.error(" Database connection error:", err));
 
 // Middleware
 app.use(cors({
-    origin: 'http://localhost:3000' // Allow requests from the React app
-  }));
+    origin: process.env.CLIENT_ORIGIN || 'http://localhost:3000'
+}));
+app.use(express.json());
+
+// Use the login route (this will handle /login)
+app.use('/auth', loginRoutes)
+
+app.use("/register", registerRoutes); // Mount register routes
+
+app.use("/admin", adminRoutes);
+
+app.use("/api/options", optionsRoutes)
+
+app.use("/cars", carsRoutes);
+
+// Protected route
+app.get('/protected', authenticateToken, (req, res) => {
+  const { email, name, role } = req.user; // Retrieve user info from the token
   
-app.use(bodyParser.json());
-
-// Simulated database (in-memory storage for items)
-let items = [
-    { id: 1, name: 'Item 1', description: 'Description of Item 1' },
-    { id: 2, name: 'Item 2', description: 'Description of Item 2' }
-];
-let idCounter = 1;
-
-// Routes
-
-// CREATE (POST /items)
-app.post('/items', (req, res) => {
-  const { name, description } = req.body;
-  if (!name || !description) {
-    return res.status(400).json({ message: 'Name and description are required' });
-  }
-  const newItem = { id: idCounter++, name, description };
-  items.push(newItem);
-  res.status(201).json(newItem);
-});
-
-// API Routes
-app.get('/items', (req, res) => {
-    
-    res.json(items);
+  res.json({
+    message: "Welcome to your dashboard",
+    user: { email, name, role }
   });
 
-// READ ONE (GET /items/:id)
-app.get('/items/:id', (req, res) => {
-  const item = items.find(i => i.id === parseInt(req.params.id));
-  if (!item) {
-    return res.status(404).json({ message: 'Item not found' });
-  }
-  res.json(item);
-});
-
-// DELETE - DELETE /items/:id
-app.delete('/items/:id', (req, res) => {
-    const itemId = parseInt(req.params.id);
-    const itemIndex = items.findIndex(i => i.id === itemId);
-  
-    if (itemIndex === -1) {
-      return res.status(404).json({ message: 'Item not found' });
-    }
-  
-    // Remove the item from the array
-    items.splice(itemIndex, 1);
-    res.status(204).send();  // Send a 204 No Content response
-  });
   
 // Health check endpoint for Kubernetes probes
 app.get('/health', (req, res) => {
   res.status(200).send('OK');
+
+
 });
 
 // Start Server
 app.listen(PORT, () => {
-  console.log(`API server running on http://localhost:${PORT}`);
+    console.log(`API server running on http://localhost:${PORT}`);
 });
