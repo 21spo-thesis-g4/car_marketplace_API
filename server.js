@@ -61,7 +61,10 @@ app.delete('/items/:id', (req, res) => {
     res.status(204).send();  // Send a 204 No Content response
   });
   
-  
+// Health check endpoint for Kubernetes probes
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
 
 // Start Server
 app.listen(PORT, () => {
