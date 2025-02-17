@@ -45,6 +45,13 @@ app.get('/protected', authenticateToken, (req, res) => {
     message: "Welcome to your dashboard",
     user: { email, name, role }
   });
+
+  
+// Health check endpoint for Kubernetes probes
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+
+
 });
 
 // Start Server
