@@ -1,7 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import loginRoutes  from "./routes/login.js"; // Ensure the path is correct
+import loginRoutes from "./routes/login.js"; // Ensure the path is correct
 import registerRoutes from "./routes/register.js"; // Import register route
 import { authenticateToken } from "./middleware/auth.js"; // Import the auth middleware
 import { connectToDatabase } from "./database.js"; //  Import database connection
@@ -22,7 +22,7 @@ connectToDatabase()
 
 // Middleware
 app.use(cors({
-    origin: process.env.CLIENT_ORIGIN || 'http://localhost:3000'
+  origin: process.env.CLIENT_ORIGIN || 'http://localhost:3000'
 }));
 app.use(express.json());
 
@@ -36,25 +36,22 @@ app.use("/admin", adminRoutes);
 app.use("/api/options", optionsRoutes)
 
 app.use("/cars", carsRoutes);
-
 // Protected route
 app.get('/protected', authenticateToken, (req, res) => {
   const { email, name, role } = req.user; // Retrieve user info from the token
-  
+
   res.json({
     message: "Welcome to your dashboard",
     user: { email, name, role }
   });
+});
 
-  
 // Health check endpoint for Kubernetes probes
 app.get('/health', (req, res) => {
   res.status(200).send('OK');
-
-
 });
 
 // Start Server
 app.listen(PORT, () => {
-    console.log(`API server running on http://localhost:${PORT}`);
+  console.log(`API server running on http://localhost:${PORT}`);
 });
