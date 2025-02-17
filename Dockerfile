@@ -1,5 +1,7 @@
-# Use the official Node.js image
-FROM node:18
+# ===============================
+# STAGE 1: Build dependencies
+# ===============================
+FROM node:18-slim AS builder
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -7,14 +9,28 @@ WORKDIR /app
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install only production dependencies
+# Install production dependencies only
 RUN npm ci --only=production
 
-# Copy all project files to the container, excluding unnecessary files specified in .dockerignore
+# ===============================
+# STAGE 2: Final image
+# ===============================
+FROM node:18-slim
+
+WORKDIR /app
+
+# Copy dependencies from the previous stage
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
+
+# Copy the application source code
 COPY . .
+
+# Set environment variables
+ENV NODE_ENV=production
 
 # Expose port 4000
 EXPOSE 4000
 
-# Run the application and handle graceful shutdowns
-CMD ["sh", "-c", "trap 'exit' SIGTERM; node server.js"]
+# Start the application
+CMD ["node", "server.js"]
