@@ -8,6 +8,7 @@ import { connectToDatabase } from "./database.js"; //  Import database connectio
 import adminRoutes from "./routes/admin.js";
 import optionsRoutes from "./routes/options.js";
 import carsRoutes from "./routes/cars.js"
+import uploadRoutes from "./routes/upload.js";
 
 dotenv.config();
 
@@ -36,6 +37,9 @@ app.use("/admin", adminRoutes);
 app.use("/api/options", optionsRoutes)
 
 app.use("/cars", carsRoutes);
+
+app.use("/upload", uploadRoutes);
+
 // Protected route
 app.get('/protected', authenticateToken, (req, res) => {
   const { email, name, role } = req.user; // Retrieve user info from the token

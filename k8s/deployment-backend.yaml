@@ -5,7 +5,7 @@ metadata:
   labels:
     app: backend
 spec:
-  replicas: 1  # Podien määrä
+  replicas: 1  # Number of pods
   selector:
     matchLabels:
       app: backend
@@ -20,21 +20,75 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 4000
-        envFrom:
-        - secretRef:
-            name: backend-secret
+        env:
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: JWT_SECRET
+
+        - name: ADMIN_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: ADMIN_SECRET
+
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: DB_USER
+
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: DB_PASSWORD
+
+        - name: DB_SERVER
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: DB_SERVER
+
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: DB_NAME
+
+        - name: AZURE_STORAGE_ACCOUNT
+          valueFrom:
+            secretKeyRef:
+              name: blob-storage-secret
+              key: AZURE_STORAGE_ACCOUNT
+
+        - name: AZURE_STORAGE_CONTAINER
+          valueFrom:
+            secretKeyRef:
+              name: blob-storage-secret
+              key: AZURE_STORAGE_CONTAINER
+        
+        - name: AZURE_STORAGE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: blob-storage-secret
+              key: AZURE_STORAGE_KEY
+        
         livenessProbe:
           httpGet:
             path: /health
             port: 4000
           initialDelaySeconds: 10
           periodSeconds: 5
+
         readinessProbe:
           httpGet:
             path: /health
             port: 4000
           initialDelaySeconds: 5
           periodSeconds: 5
+
         resources:
           limits:
             memory: "256Mi"
