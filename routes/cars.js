@@ -115,4 +115,73 @@ router.delete("/:id", async (req, res) => {
     }
 });
 
+router.get("/search", async (req, res) => {
+    try {
+        const { 
+            TypeID, subType, make, model, 
+            minYear, maxYear, minMileage, maxMileage, 
+            minPrice, maxPrice 
+        } = req.query;
+
+        const pool = await connectToDatabase();
+        let query = `
+        SELECT Cars.*, carTechnicalDetails.Mileage
+        FROM Cars
+        LEFT JOIN carTechnicalDetails ON Cars.CarID = carTechnicalDetails.CarID
+        WHERE 1=1
+        `;
+        const request = pool.request();
+
+        if (TypeID) {
+            query += " AND Cars.TypeID = @TypeID";
+            request.input("TypeID", sql.Int, TypeID);
+        }
+        if (subType) {
+            query += " AND Cars.SubTypeID = @subType";
+            request.input("subType", sql.Int, subType);
+        }
+        if (make) {
+            query += " AND Cars.MakeID = @make";
+            request.input("make", sql.Int, make);
+        }
+        if (model) {
+            query += " AND Cars.ModelID = @model";
+            request.input("model", sql.Int, model);
+        }
+        if (minYear) {
+            query += " AND Cars.Year >= @minYear";
+            request.input("minYear", sql.Int, minYear);
+        }
+        if (maxYear) {
+            query += " AND Cars.Year <= @maxYear";
+            request.input("maxYear", sql.Int, maxYear);
+        }
+        if (minMileage) {
+            query += " AND carTechnicalDetails.Mileage >= @minMileage";
+            request.input("minMileage", sql.Int, minMileage);
+        }
+        if (maxMileage) {
+            query += " AND carTechnicalDetails.Mileage <= @maxMileage";
+            request.input("maxMileage", sql.Int, maxMileage);
+        }
+        if (minPrice) {
+            query += " AND Cars.Price >= @minPrice";
+            request.input("minPrice", sql.Decimal(10, 2), minPrice);
+        }
+        if (maxPrice) {
+            query += " AND Cars.Price <= @maxPrice";
+            request.input("maxPrice", sql.Decimal(10, 2), maxPrice);
+        }
+
+        const result = await request.query(query);
+        res.json(result.recordset);
+    } catch (error) {
+        console.error("Error searching cars:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+});
+
+
+
+
 export default router;
