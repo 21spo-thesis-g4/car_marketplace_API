@@ -9,6 +9,7 @@ import adminRoutes from "./routes/admin.js";
 import optionsRoutes from "./routes/options.js";
 import carsRoutes from "./routes/cars.js"
 import uploadRoutes from "./routes/upload.js";
+import carTechnicalDetailsRoutes from "./routes/carTechnicalDetails.js";
 
 dotenv.config();
 
@@ -39,6 +40,8 @@ app.use("/api/options", optionsRoutes)
 app.use("/cars", carsRoutes);
 
 app.use("/upload", uploadRoutes);
+
+app.use("/carTechnicalDetails", carTechnicalDetailsRoutes);
 
 // Protected route
 app.get('/protected', authenticateToken, (req, res) => {
