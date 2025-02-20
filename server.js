@@ -22,9 +22,14 @@ connectToDatabase()
   .then(() => console.log(" Database ready!"))
   .catch((err) => console.error(" Database connection error:", err));
 
-// Middleware
+// Middleware - Update CORS settings
+const allowedOrigins = [
+  process.env.CLIENT_ORIGIN || "http://localhost:3000", // Dev
+  "http://20.166.243.194", // Production Frontend URL
+];
+
 app.use(cors({
-  origin: process.env.CLIENT_ORIGIN || 'http://localhost:3000'
+  origin: allowedOrigins,
 }));
 app.use(express.json());
 
