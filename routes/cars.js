@@ -22,7 +22,7 @@ router.post("/", async (req, res) => {
 
     try {
         const pool = await connectToDatabase(); // Connect to database
-        await pool.request()
+        const result = await pool.request()
             .input("TypeID", sql.Int, TypeID)
             .input("MakeID", sql.Int, MakeID)
             .input("ModelID", sql.Int, ModelID)
