@@ -4,7 +4,7 @@ import sql from "mssql";
 
 const router = express.Router();
 
-// ✅ POST - Add new car technical details
+// Add new car technical details
 router.post("/", async (req, res) => {
     const {
         CarID, Mileage, EngineCapacity, Power, Torque, TopSpeed, Acceleration,
@@ -61,7 +61,7 @@ router.post("/", async (req, res) => {
     }
 });
 
-// ✅ GET - Retrieve all car technical details
+// Retrieve all car technical details
 router.get("/", async (req, res) => {
     try {
         const pool = await connectToDatabase();
