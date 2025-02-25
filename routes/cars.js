@@ -49,68 +49,16 @@ router.post("/", async (req, res) => {
                 (TypeID, MakeID, ModelID, Year, ColorID, ShadeID, RegistrationNumber, VIN, Price, 
                  Description, FirstRegistration, InspectionDate, NumberOfOwners, UserID, CountryID, 
                  RegionID, CityID, SubTypeID, Roadworthy, Sold, LastUpdated, Views)
+                 OUTPUT INSERTED.CarID
                 VALUES 
                 (@TypeID, @MakeID, @ModelID, @Year, @ColorID, @ShadeID, @RegistrationNumber, @VIN, @Price, 
                  @Description, @FirstRegistration, @InspectionDate, @NumberOfOwners, @UserID, @CountryID, 
                  @RegionID, @CityID, @SubTypeID, @Roadworthy, @Sold, @LastUpdated, @Views)`);
-        res.status(201).json({ message: "Car added successfully" });
+        
+        const newCarID = result.recordset[0].CarID;
+        res.status(201).json({ message: "Car added successfully", CarID: newCarID });
     } catch (error) {
         console.error("Error :", error);
-        res.status(500).json({ message: "Internal server error." });
-    }
-});
-
-router.get("/", async (req, res) => {
-    try {
-        const pool = await connectToDatabase();
-        const result = await pool.request().query('SELECT * FROM Cars');
-        res.json(result.recordset);
-    } catch (error) {
-        console.error("Error loading cars:", error);
-        res.status(500).json({ message: "Internal server error." });
-    }
-});
-
-router.get("/:id", async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const pool = await connectToDatabase();
-        const result = await pool.request()
-            .input("CarID", sql.Int, id)
-            .query('SELECT * FROM Cars WHERE CarID = @CarID');
-
-        if (result.recordset.length === 0) {
-            return res.status(404).json({ message: "Car not found." });
-        }
-
-        res.json(result.recordset[0]);
-    } catch (error) {
-        console.error("Error fetching car:", error);
-        res.status(500).json({ message: "Internal server error." });
-    }
-});
-
-router.delete("/:id", async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const pool = await connectToDatabase();
-        const existingCar = await pool.request()
-            .input("CarID", sql.Int, id)
-            .query('SELECT * FROM Cars WHERE CarID = @CarID');
-
-        if (existingCar.recordset.length === 0) {
-            return res.status(404).json({ message: "Car not found." });
-        }
-
-        await pool.request()
-            .input("CarID", sql.Int, id)
-            .query('DELETE FROM Cars WHERE CarID = @CarID');
-
-        res.json({ message: "Car deleted successfully." });
-    } catch (error) {
-        console.error("Error deleting car:", error);
         res.status(500).json({ message: "Internal server error." });
     }
 });
@@ -182,6 +130,59 @@ router.get("/search", async (req, res) => {
 });
 
 
+router.get("/", async (req, res) => {
+    try {
+        const pool = await connectToDatabase();
+        const result = await pool.request().query('SELECT * FROM Cars');
+        res.json(result.recordset);
+    } catch (error) {
+        console.error("Error loading cars:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+});
 
+router.get("/:id", async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const pool = await connectToDatabase();
+        const result = await pool.request()
+            .input("CarID", sql.Int, id)
+            .query('SELECT * FROM Cars WHERE CarID = @CarID');
+
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ message: "Car not found." });
+        }
+
+        res.json(result.recordset[0]);
+    } catch (error) {
+        console.error("Error fetching car:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+});
+
+router.delete("/:id", async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const pool = await connectToDatabase();
+        const existingCar = await pool.request()
+            .input("CarID", sql.Int, id)
+            .query('SELECT * FROM Cars WHERE CarID = @CarID');
+
+        if (existingCar.recordset.length === 0) {
+            return res.status(404).json({ message: "Car not found." });
+        }
+
+        await pool.request()
+            .input("CarID", sql.Int, id)
+            .query('DELETE FROM Cars WHERE CarID = @CarID');
+
+        res.json({ message: "Car deleted successfully." });
+    } catch (error) {
+        console.error("Error deleting car:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+});
 
 export default router;

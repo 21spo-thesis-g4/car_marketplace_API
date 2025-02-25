@@ -24,7 +24,7 @@ router.post("/login", async (req, res) => {
       .query("SELECT UserID, Name, Email, Phone, PasswordHash, Role FROM Users WHERE Email = @Email");
 
     if (userResult.recordset.length === 0) {
-      return res.status(400).json({ message: "Invalid credentials" }); // ✅ This is valid now
+      return res.status(400).json({ message: "Invalid credentials" }); 
     }
 
     const user = userResult.recordset[0];
