@@ -21,10 +21,9 @@ router.post("/login", async (req, res) => {
       [email]
     );
 
-    // Tarkista, löytyykö käyttäjä
+
     if (userResult.rows.length === 0) {
       return res.status(400).json({ message: "Invalid credentials" });
-    }
 
     const user = userResult.rows[0]; // PostgreSQL käyttää `rows`, ei `recordset`
 
