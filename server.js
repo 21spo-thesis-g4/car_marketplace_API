@@ -4,7 +4,7 @@ import cors from "cors";
 import loginRoutes from "./routes/login.js";
 import registerRoutes from "./routes/register.js";
 import { authenticateToken } from "./middleware/auth.js";
-import { connectToDatabase } from "./database.js";
+//import { connectToDatabase } from "./database.js";
 import adminRoutes from "./routes/admin.js";
 import optionsRoutes from "./routes/options.js";
 import carsRoutes from "./routes/cars.js";
@@ -17,10 +17,10 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 // Test database connection at startup
-connectToDatabase()
+/*connectToDatabase()
   .then(() => console.log("Database ready!"))
   .catch((err) => console.error("Database connection error:", err));
-
+*/
 const allowedOrigins = [
   "http://localhost:3000",  // Kehitysympäristö
   "http://128.251.126.103", // Backendin julkinen IP
@@ -28,12 +28,14 @@ const allowedOrigins = [
 ];
 
 app.use((req, res, next) => {
-  const origin = req.headers.origin;
+  const origin = req.headers.origin || "*";
   console.log(`CORS Request from Origin: ${origin}`);
 
-  if (allowedOrigins.includes(origin)) {
+  if (!origin && allowedOrigins.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
-  } else {
+  } else if (!origin) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+   } else {
     console.warn(`Origin not allowed: ${origin}`);
   }
 

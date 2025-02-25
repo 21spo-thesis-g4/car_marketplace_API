@@ -1,9 +1,24 @@
-import sql from "mssql";
+//import sql from "mssql";
+import pkg from "pg";
+const { Pool } = pkg;
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const config = {
+const pool = new Pool({
+  connectionString: process.env.DATABASE_PUBLIC_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
+
+pool.connect()
+  .then(() => console.log("✅ Connected to PostgreSQL"))
+  .catch(err => console.error("❌ PostgreSQL connection error:", err));
+
+export default pool;
+
+/*const config = {
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   server: process.env.DB_SERVER,
@@ -19,4 +34,4 @@ export async function connectToDatabase() {
   } catch (err) {
     console.error(" Database connection failed!", err);
   }
-}
+}*/

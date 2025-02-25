@@ -1,8 +1,9 @@
 import express from "express";
 import bcrypt from "bcrypt";
-import sql from "mssql";
+//import sql from "mssql";
 import jwt from "jsonwebtoken";
-import { connectToDatabase } from "../database.js";
+//import { connectToDatabase } from "../database.js";
+import pool from "../database.js";
 
 const router = express.Router();
 
@@ -16,15 +17,15 @@ router.post("/login", async (req, res) => {
   }
 
   try {
-    const pool = await connectToDatabase();
+    //const pool = await connectToDatabase();
 
-    const userResult = await pool
-      .request()
-      .input("Email", sql.NVarChar, email)
-      .query("SELECT UserID, Name, Email, Phone, PasswordHash, Role FROM Users WHERE Email = @Email");
+    const userResult = await pool.query(
+      "SELECT userid, name, email, phone, passwordhash, role FROM users WHERE email = $1",
+      [email]
+    );
 
-    if (userResult.recordset.length === 0) {
-      return res.status(400).json({ message: "Invalid credentials" }); // ✅ This is valid now
+    if (userResult.rows.length === 0) {
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
     const user = userResult.recordset[0];
