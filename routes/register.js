@@ -1,7 +1,7 @@
 import express from "express";
 import bcrypt from "bcrypt";
 import sql from "mssql";
-import { connectToDatabase } from "../database.js";
+//import { connectToDatabase } from "../database.js";
 
 const router = express.Router();
 
