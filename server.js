@@ -1,10 +1,10 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import pool from "./database.js"; // PostgreSQL-yhteys
 import loginRoutes from "./routes/login.js";
 import registerRoutes from "./routes/register.js";
 import { authenticateToken } from "./middleware/auth.js";
-//import { connectToDatabase } from "./database.js";
 import adminRoutes from "./routes/admin.js";
 import optionsRoutes from "./routes/options.js";
 import carsRoutes from "./routes/cars.js";
@@ -16,27 +16,22 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Test database connection at startup
-/*connectToDatabase()
-  .then(() => console.log("Database ready!"))
-  .catch((err) => console.error("Database connection error:", err));
-*/
+// Sallitut frontend-alkuperät
 const allowedOrigins = [
-  "http://localhost:3000",  // Kehitysympäristö
-  "http://128.251.126.103", // Backendin julkinen IP
-  "http://20.166.243.194",  // Production Frontend URL
+  "http://localhost:3000",
+  "https://your-production-frontend.com"
 ];
 
+// CORS-middleware
 app.use((req, res, next) => {
-  const origin = req.headers.origin || "*";
-  console.log(`CORS Request from Origin: ${origin}`);
+  const origin = req.headers.origin;
 
-  if (!origin && allowedOrigins.includes(origin)) {
+  if (origin && allowedOrigins.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
   } else if (!origin) {
     res.setHeader("Access-Control-Allow-Origin", "*");
-   } else {
-    console.warn(`Origin not allowed: ${origin}`);
+  } else {
+    console.warn(`🚨 Origin not allowed: ${origin}`);
   }
 
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
@@ -44,7 +39,6 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader("Vary", "Origin");
 
-  // Jos tämä on OPTIONS-pyyntö, vastataan tyhjällä 200 OK
   if (req.method === "OPTIONS") {
     return res.sendStatus(200);
   }
@@ -66,16 +60,21 @@ app.use("/carTechnicalDetails", carTechnicalDetailsRoutes);
 // Protected route
 app.get("/protected", authenticateToken, (req, res) => {
   const { email, name, role } = req.user;
-
   res.json({
     message: "Welcome to your dashboard",
     user: { email, name, role },
   });
 });
 
-// Health check endpoint for Kubernetes probes
-app.get("/health", (req, res) => {
-  res.status(200).send("OK");
+// Health check
+app.get("/health", async (req, res) => {
+  try {
+    await pool.query("SELECT NOW()");
+    res.status(200).send("OK - Database Connected");
+  } catch (error) {
+    console.error("❌ Database connection error:", error);
+    res.status(500).send("Database Connection Error");
+  }
 });
 
 // Start Server

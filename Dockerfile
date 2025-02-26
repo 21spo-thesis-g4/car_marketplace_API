@@ -3,13 +3,12 @@
 # ===============================
 FROM node:18-slim AS builder
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# Kopioi package.json ja package-lock.json
 COPY package*.json ./
 
-# Install production dependencies only
+# Asenna vain tuotantoriippuvuudet
 RUN npm ci --only=production
 
 # ===============================
@@ -19,18 +18,18 @@ FROM node:18-slim
 
 WORKDIR /app
 
-# Copy dependencies from the previous stage
+# Kopioi asennetut moduulit
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 
-# Copy the application source code
+# Kopioi sovelluksen lähdekoodi
 COPY . .
 
-# Set environment variables
+# Aseta ympäristömuuttujat (.env ei lataudu automaattisesti)
 ENV NODE_ENV=production
 
-# Expose port 4000
+# Expose portti
 EXPOSE 4000
 
-# Start the application
-CMD ["node", "server.js"]
+# Määritä käynnistyskomento
+ENTRYPOINT ["node", "server.js"]

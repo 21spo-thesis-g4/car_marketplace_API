@@ -25,7 +25,7 @@ router.post("/login", async (req, res) => {
     if (userResult.rows.length === 0) {
       return res.status(400).json({ message: "Invalid credentials" });
 
-    const user = userResult.rows[0]; // PostgreSQL käyttää `rows`, ei `recordset`
+    const user = userResult.rows[0]; // PostgreSQL käyttää `rows`
 
     // Tarkista salasana
     const passwordMatch = await bcrypt.compare(password, user.passwordhash);
