@@ -1,180 +1,77 @@
 import express from "express";
-import sql from "mssql";
-//import { connectToDatabase } from "../database.js";
+import pool from "../database.js";
 
 const router = express.Router();
 
+// Add a new car
 router.post("/", async (req, res) => {
     const {
-        TypeID, MakeID, ModelID, Year, ColorID, ShadeID,
-        RegistrationNumber, VIN, Price, Description,
-        FirstRegistration, InspectionDate, NumberOfOwners,
-        UserID, CountryID, RegionID, CityID, SubTypeID,
-        Roadworthy, Sold, LastUpdated, Views
+        typeid, makeid, modelid, year, colorid, shadeid,
+        registrationnumber, vin, price, description,
+        firstregistration, inspectiondate, numberofowners,
+        userid, countryid, regionid, cityid, subtypeid,
+        roadworthy, sold, lastupdated, views
     } = req.body;
 
-    // Validate required fields
-    if (!TypeID || !MakeID || !ModelID || !Year || !ColorID || !ShadeID ||
-        !RegistrationNumber || !VIN || !Price || !UserID || !CountryID || 
-        !RegionID || !CityID || !SubTypeID || Roadworthy === undefined) {
-        return res.status(400).json({ message: "All fields are required" });
+    if (!typeid || !makeid || !modelid || !year || !colorid || !shadeid ||
+        !registrationnumber || !vin || !price || !userid || !countryid ||
+        !regionid || !cityid || !subtypeid || roadworthy === undefined) {
+        return res.status(400).json({ message: "All required fields must be filled" });
     }
 
     try {
-        const pool = await connectToDatabase(); // Connect to database
-        await pool.request()
-            .input("TypeID", sql.Int, TypeID)
-            .input("MakeID", sql.Int, MakeID)
-            .input("ModelID", sql.Int, ModelID)
-            .input("Year", sql.Int, Year)
-            .input("ColorID", sql.Int, ColorID)
-            .input("ShadeID", sql.Int, ShadeID)
-            .input("RegistrationNumber", sql.NVarChar, RegistrationNumber)
-            .input("VIN", sql.NVarChar, VIN)
-            .input("Price", sql.Decimal(10, 2), Price)
-            .input("Description", sql.NVarChar, Description || null)
-            .input("FirstRegistration", sql.Date, FirstRegistration || null)
-            .input("InspectionDate", sql.Date, InspectionDate || null)
-            .input("NumberOfOwners", sql.Int, NumberOfOwners || null)
-            .input("UserID", sql.Int, UserID)
-            .input("CountryID", sql.Int, CountryID)
-            .input("RegionID", sql.Int, RegionID)
-            .input("CityID", sql.Int, CityID)
-            .input("SubTypeID", sql.Int, SubTypeID)
-            .input("Roadworthy", sql.Bit, Roadworthy)
-            .input("Sold", sql.Bit, Sold || 0) // Default: not sold
-            .input("LastUpdated", sql.DateTime, LastUpdated || new Date()) // Default: current time
-            .input("Views", sql.Int, Views || 0) // Default: 0 views
-            .query(`INSERT INTO Cars 
-                (TypeID, MakeID, ModelID, Year, ColorID, ShadeID, RegistrationNumber, VIN, Price, 
-                 Description, FirstRegistration, InspectionDate, NumberOfOwners, UserID, CountryID, 
-                 RegionID, CityID, SubTypeID, Roadworthy, Sold, LastUpdated, Views)
-                VALUES 
-                (@TypeID, @MakeID, @ModelID, @Year, @ColorID, @ShadeID, @RegistrationNumber, @VIN, @Price, 
-                 @Description, @FirstRegistration, @InspectionDate, @NumberOfOwners, @UserID, @CountryID, 
-                 @RegionID, @CityID, @SubTypeID, @Roadworthy, @Sold, @LastUpdated, @Views)`);
-        res.status(201).json({ message: "Car added successfully" });
+        const result = await pool.query(
+            `INSERT INTO cars 
+                (typeid, makeid, modelid, year, colorid, shadeid, registrationnumber, vin, price, 
+                 description, firstregistration, inspectiondate, numberofowners, userid, countryid, 
+                 regionid, cityid, subtypeid, roadworthy, sold, lastupdated, views)
+            VALUES 
+                ($1, $2, $3, $4, $5, $6, $7, $8, $9, 
+                 $10, $11, $12, $13, $14, $15, 
+                 $16, $17, $18, $19, $20, $21, $22)
+            RETURNING carid`,
+            [typeid, makeid, modelid, year, colorid, shadeid, registrationnumber, vin, price,
+                description || null, firstregistration || null, inspectiondate || null, numberofowners || null, userid, countryid,
+                regionid, cityid, subtypeid, roadworthy || false, sold || false, lastupdated || new Date(), views || 0]
+        );
+
+        res.status(201).json({ message: "Car added successfully", carid: result.rows[0].carid });
     } catch (error) {
-        console.error("Error :", error);
+        console.error("Error adding car:", error);
         res.status(500).json({ message: "Internal server error." });
     }
 });
 
-router.get("/", async (req, res) => {
-    try {
-        const pool = await connectToDatabase();
-        const result = await pool.request().query('SELECT * FROM Cars');
-        res.json(result.recordset);
-    } catch (error) {
-        console.error("Error loading cars:", error);
-        res.status(500).json({ message: "Internal server error." });
-    }
-});
-
-router.get("/:id", async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const pool = await connectToDatabase();
-        const result = await pool.request()
-            .input("CarID", sql.Int, id)
-            .query('SELECT * FROM Cars WHERE CarID = @CarID');
-
-        if (result.recordset.length === 0) {
-            return res.status(404).json({ message: "Car not found." });
-        }
-
-        res.json(result.recordset[0]);
-    } catch (error) {
-        console.error("Error fetching car:", error);
-        res.status(500).json({ message: "Internal server error." });
-    }
-});
-
-router.delete("/:id", async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const pool = await connectToDatabase();
-        const existingCar = await pool.request()
-            .input("CarID", sql.Int, id)
-            .query('SELECT * FROM Cars WHERE CarID = @CarID');
-
-        if (existingCar.recordset.length === 0) {
-            return res.status(404).json({ message: "Car not found." });
-        }
-
-        await pool.request()
-            .input("CarID", sql.Int, id)
-            .query('DELETE FROM Cars WHERE CarID = @CarID');
-
-        res.json({ message: "Car deleted successfully." });
-    } catch (error) {
-        console.error("Error deleting car:", error);
-        res.status(500).json({ message: "Internal server error." });
-    }
-});
-
+// Search cars
 router.get("/search", async (req, res) => {
     try {
-        const { 
-            TypeID, subType, make, model, 
-            minYear, maxYear, minMileage, maxMileage, 
-            minPrice, maxPrice 
+        const {
+            typeid, subtypeid, makeid, modelid,
+            minyear, maxyear, minmileage, maxmileage,
+            minprice, maxprice
         } = req.query;
 
-        const pool = await connectToDatabase();
         let query = `
-        SELECT Cars.*, carTechnicalDetails.Mileage
-        FROM Cars
-        LEFT JOIN carTechnicalDetails ON Cars.CarID = carTechnicalDetails.CarID
+        SELECT cars.*, cartechnicaldetails.mileage
+        FROM cars
+        LEFT JOIN cartechnicaldetails ON cars.carid = cartechnicaldetails.carid
         WHERE 1=1
         `;
-        const request = pool.request();
+        const queryParams = [];
 
-        if (TypeID) {
-            query += " AND Cars.TypeID = @TypeID";
-            request.input("TypeID", sql.Int, TypeID);
-        }
-        if (subType) {
-            query += " AND Cars.SubTypeID = @subType";
-            request.input("subType", sql.Int, subType);
-        }
-        if (make) {
-            query += " AND Cars.MakeID = @make";
-            request.input("make", sql.Int, make);
-        }
-        if (model) {
-            query += " AND Cars.ModelID = @model";
-            request.input("model", sql.Int, model);
-        }
-        if (minYear) {
-            query += " AND Cars.Year >= @minYear";
-            request.input("minYear", sql.Int, minYear);
-        }
-        if (maxYear) {
-            query += " AND Cars.Year <= @maxYear";
-            request.input("maxYear", sql.Int, maxYear);
-        }
-        if (minMileage) {
-            query += " AND carTechnicalDetails.Mileage >= @minMileage";
-            request.input("minMileage", sql.Int, minMileage);
-        }
-        if (maxMileage) {
-            query += " AND carTechnicalDetails.Mileage <= @maxMileage";
-            request.input("maxMileage", sql.Int, maxMileage);
-        }
-        if (minPrice) {
-            query += " AND Cars.Price >= @minPrice";
-            request.input("minPrice", sql.Decimal(10, 2), minPrice);
-        }
-        if (maxPrice) {
-            query += " AND Cars.Price <= @maxPrice";
-            request.input("maxPrice", sql.Decimal(10, 2), maxPrice);
-        }
+        if (typeid) query += ` AND cars.typeid = $${queryParams.push(typeid)}`;
+        if (subtypeid) query += ` AND cars.subtypeid = $${queryParams.push(subtypeid)}`;
+        if (makeid) query += ` AND cars.makeid = $${queryParams.push(makeid)}`;
+        if (modelid) query += ` AND cars.modelid = $${queryParams.push(modelid)}`;
+        if (minyear) query += ` AND cars.year >= $${queryParams.push(minyear)}`;
+        if (maxyear) query += ` AND cars.year <= $${queryParams.push(maxyear)}`;
+        if (minmileage) query += ` AND cartechnicaldetails.mileage >= $${queryParams.push(minmileage)}`;
+        if (maxmileage) query += ` AND cartechnicaldetails.mileage <= $${queryParams.push(maxmileage)}`;
+        if (minprice) query += ` AND cars.price >= $${queryParams.push(minprice)}`;
+        if (maxprice) query += ` AND cars.price <= $${queryParams.push(maxprice)}`;
 
-        const result = await request.query(query);
-        res.json(result.recordset);
+        const result = await pool.query(query, queryParams);
+        res.json(result.rows);
     } catch (error) {
         console.error("Error searching cars:", error);
         res.status(500).json({ message: "Internal server error." });
@@ -182,6 +79,52 @@ router.get("/search", async (req, res) => {
 });
 
 
+// Get all cars
+router.get("/", async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM cars');
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error loading cars:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+});
 
+// Get car by ID
+router.get("/:id", async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const result = await pool.query('SELECT * FROM cars WHERE carid = $1', [id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: "Car not found." });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("Error fetching car:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+});
+
+// Delete a car by ID
+router.delete("/:id", async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const existingCar = await pool.query('SELECT * FROM cars WHERE carid = $1', [id]);
+
+        if (existingCar.rows.length === 0) {
+            return res.status(404).json({ message: "Car not found." });
+        }
+
+        await pool.query('DELETE FROM cars WHERE carid = $1', [id]);
+        res.json({ message: "Car deleted successfully." });
+    } catch (error) {
+        console.error("Error deleting car:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+});
 
 export default router;

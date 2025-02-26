@@ -6,7 +6,7 @@ const router = express.Router();
 // Fetch all vehicle makers (brands)
 router.get('/makers', async (req, res) => {
     try {
-        const result = await pool.query("SELECT MakeID, MakeName FROM Makes ORDER BY MakeName ASC;");
+        const result = await pool.query("SELECT makeid, makename FROM makes ORDER BY makename ASC;");
         res.json(result.rows);
     } catch (err) {
         console.error("Error fetching vehicle makers:", err);
@@ -14,11 +14,11 @@ router.get('/makers', async (req, res) => {
     }
 });
 
-// Fetch models based on MakeID
-router.get('/models/:makeID', async (req, res) => {
+// Fetch models based on makeid
+router.get('/models/:makeid', async (req, res) => {
     try {
-        const { makeID } = req.params;
-        const result = await pool.query("SELECT ModelID, ModelName FROM Models WHERE MakeID = $1 ORDER BY ModelName ASC;", [makeID]);
+        const { makeid } = req.params;
+        const result = await pool.query("SELECT modelid, modelname FROM models WHERE makeid = $1 ORDER BY modelname ASC;", [makeid]);
         res.json(result.rows);
     } catch (err) {
         console.error("Error fetching models:", err);
@@ -29,7 +29,7 @@ router.get('/models/:makeID', async (req, res) => {
 // Get all vehicle types
 router.get('/vehicletypes', async (req, res) => {
     try {
-        const result = await pool.query("SELECT TypeID, TypeName FROM VehicleTypes ORDER BY TypeName ASC;");
+        const result = await pool.query("SELECT typeid, typename FROM vehicletypes ORDER BY typename ASC;");
         res.json(result.rows);
     } catch (err) {
         console.error("Error fetching vehicle types:", err);
@@ -40,7 +40,7 @@ router.get('/vehicletypes', async (req, res) => {
 // Get all subtypes
 router.get('/subtypes', async (req, res) => {
     try {
-        const result = await pool.query("SELECT SubTypeID, Name FROM SubTypes ORDER BY Name ASC;");
+        const result = await pool.query("SELECT subtypeid, name FROM subtypes ORDER BY name ASC;");
         res.json(result.rows);
     } catch (err) {
         console.error("Error fetching subtypes:", err);
@@ -49,12 +49,12 @@ router.get('/subtypes', async (req, res) => {
 });
 
 // Get all color shades
-router.get('/colorShades', async (req, res) => {
+router.get('/colorshades', async (req, res) => {
     try {
-        const result = await pool.query("SELECT ShadeID, ShadeName FROM ColorShades;");
+        const result = await pool.query("SELECT shadeid, shadename FROM colorshades;");
         res.json(result.rows);
     } catch (err) {
-        console.error("Error fetching Color Shades:", err);
+        console.error("Error fetching color shades:", err);
         res.status(500).json({ message: "Server error" });
     }
 });
@@ -62,32 +62,32 @@ router.get('/colorShades', async (req, res) => {
 // Get all colors
 router.get('/colors', async (req, res) => {
     try {
-        const result = await pool.query("SELECT ColorID, Name FROM Colors ORDER BY Name ASC;");
+        const result = await pool.query("SELECT colorid, name FROM colors ORDER BY name ASC;");
         res.json(result.rows);
     } catch (err) {
-        console.error("Error fetching Colors:", err);
+        console.error("Error fetching colors:", err);
         res.status(500).json({ message: "Server error" });
     }
 });
 
 // Get all drive types
-router.get('/driveType', async (req, res) => {
+router.get('/drivetype', async (req, res) => {
     try {
-        const result = await pool.query("SELECT DriveTypeID, Name FROM DriveTypes;");
+        const result = await pool.query("SELECT drivetypeid, name FROM drivetypes;");
         res.json(result.rows);
     } catch (err) {
-        console.error("Error fetching Drive Types:", err);
+        console.error("Error fetching drive types:", err);
         res.status(500).json({ message: "Server error" });
     }
 });
 
 // Get all fuel types
-router.get('/fuelType', async (req, res) => {
+router.get('/fueltype', async (req, res) => {
     try {
-        const result = await pool.query("SELECT FuelTypeID, Name FROM FuelTypes;");
+        const result = await pool.query("SELECT fueltypeid, name FROM fueltypes;");
         res.json(result.rows);
     } catch (err) {
-        console.error("Error fetching Fuel Type:", err);
+        console.error("Error fetching fuel type:", err);
         res.status(500).json({ message: "Server error" });
     }
 });
@@ -95,10 +95,10 @@ router.get('/fuelType', async (req, res) => {
 // Get all transmissions
 router.get('/transmission', async (req, res) => {
     try {
-        const result = await pool.query("SELECT TransmissionID, Name FROM Transmissions;");
+        const result = await pool.query("SELECT transmissionid, name FROM transmissions;");
         res.json(result.rows);
     } catch (err) {
-        console.error("Error fetching Transmission:", err);
+        console.error("Error fetching transmission:", err);
         res.status(500).json({ message: "Server error" });
     }
 });
@@ -106,44 +106,42 @@ router.get('/transmission', async (req, res) => {
 // Get all features
 router.get('/features', async (req, res) => {
     try {
-        const result = await pool.query("SELECT FeatureID, Name, Category FROM Features;");
+        const result = await pool.query("SELECT featureid, name, category FROM features;");
         res.json(result.rows);
     } catch (err) {
-        console.error("Error fetching Features:", err);
+        console.error("Error fetching features:", err);
         res.status(500).json({ message: "Server error" });
     }
 });
 
 // Get all car technical details
-router.get('/carTechnicalDetails', async (req, res) => {
+router.get('/cartechnicaldetails', async (req, res) => {
     try {
-        const query = `
+        const result = await pool.query(`
             SELECT 
-                CarID, 
-                Mileage,
-                EngineCapacity,
-                Power,
-                Torque,
-                TopSpeed,
-                Acceleration,
-                CO2Emissions,
-                FuelConsumptionCity,
-                FuelConsumptionHighway,
-                FuelConsumptionCombined,
-                MassEmpty,
-                MassTotal,
-                TowCapacityBraked,
-                TowCapacityUnbraked,
-                SeatingCapacity,
-                DoorCount,
-                SteeringSide,
-                FuelTypeID,
-                DriveTypeID,
-                TransmissionID
-            FROM CarTechnicalDetails
-        `;
-
-        const result = await pool.query(query);
+                carid, 
+                mileage,
+                enginecapacity,
+                power,
+                torque,
+                topspeed,
+                acceleration,
+                co2emissions,
+                fuelconsumptioncity,
+                fuelconsumptionhighway,
+                fuelconsumptioncombined,
+                massempty,
+                masstotal,
+                towcapacitybraked,
+                towcapacityunbraked,
+                seatingcapacity,
+                doorcount,
+                steeringside,
+                fueltypeid,
+                drivetypeid,
+                transmissionid
+            FROM cartechnicaldetails
+        `);
         res.json(result.rows);
     } catch (err) {
         console.error("Error fetching car technical details:", err);
@@ -151,14 +149,13 @@ router.get('/carTechnicalDetails', async (req, res) => {
     }
 });
 
-
 // Get all countries
 router.get('/countries', async (req, res) => {
     try {
-        const result = await pool.query("SELECT CountryID, Name FROM Countries;");
+        const result = await pool.query("SELECT countryid, name FROM countries;");
         res.json(result.rows);
     } catch (err) {
-        console.error("Error fetching Countries:", err);
+        console.error("Error fetching countries:", err);
         res.status(500).json({ message: "Server error" });
     }
 });
@@ -166,10 +163,10 @@ router.get('/countries', async (req, res) => {
 // Get all regions
 router.get('/regions', async (req, res) => {
     try {
-        const result = await pool.query("SELECT RegionID, CountryID, Name FROM Regions;");
+        const result = await pool.query("SELECT regionid, countryid, name FROM regions;");
         res.json(result.rows);
     } catch (err) {
-        console.error("Error fetching Regions:", err);
+        console.error("Error fetching regions:", err);
         res.status(500).json({ message: "Server error" });
     }
 });
@@ -177,10 +174,10 @@ router.get('/regions', async (req, res) => {
 // Get all cities
 router.get('/cities', async (req, res) => {
     try {
-        const result = await pool.query("SELECT CityID, RegionID, Name FROM Cities;");
+        const result = await pool.query("SELECT cityid, regionid, name FROM cities;");
         res.json(result.rows);
     } catch (err) {
-        console.error("Error fetching Cities:", err);
+        console.error("Error fetching cities:", err);
         res.status(500).json({ message: "Server error" });
     }
 });
@@ -188,29 +185,29 @@ router.get('/cities', async (req, res) => {
 // Search endpoint
 router.get('/search', async (req, res) => {
     try {
-        const { make, model, type, year, color, minPrice, maxPrice } = req.query;
+        const { make, model, type, year, color, minprice, maxprice } = req.query;
 
         let query = `
             SELECT 
-                c.CarID, c.Year, c.Price, c.Description, c.RegistrationNumber, c.VIN,
-                m.MakeName, mo.ModelName, vt.TypeName, col.Name AS ColorName, cs.ShadeName
-            FROM Cars c
-            LEFT JOIN Makes m ON c.MakeID = m.MakeID
-            LEFT JOIN Models mo ON c.ModelID = mo.ModelID
-            LEFT JOIN VehicleTypes vt ON c.TypeID = vt.TypeID
-            LEFT JOIN Colors col ON c.ColorID = col.ColorID
-            LEFT JOIN ColorShades cs ON c.ShadeID = cs.ShadeID
+                c.carid, c.year, c.price, c.description, c.registrationnumber, c.vin,
+                m.makename, mo.modelname, vt.typename, col.name AS colorname, cs.shadename
+            FROM cars c
+            LEFT JOIN makes m ON c.makeid = m.makeid
+            LEFT JOIN models mo ON c.modelid = mo.modelid
+            LEFT JOIN vehicletypes vt ON c.typeid = vt.typeid
+            LEFT JOIN colors col ON c.colorid = col.colorid
+            LEFT JOIN colorshades cs ON c.shadeid = cs.shadeid
             WHERE 1=1
         `;
         const queryParams = [];
 
-        if (make) queryParams.push(make) && (query += " AND m.MakeName = $" + queryParams.length);
-        if (model) queryParams.push(model) && (query += " AND mo.ModelName = $" + queryParams.length);
-        if (type) queryParams.push(type) && (query += " AND vt.TypeName = $" + queryParams.length);
-        if (year) queryParams.push(year) && (query += " AND c.Year = $" + queryParams.length);
-        if (color) queryParams.push(color) && (query += " AND col.Name = $" + queryParams.length);
-        if (minPrice) queryParams.push(minPrice) && (query += " AND c.Price >= $" + queryParams.length);
-        if (maxPrice) queryParams.push(maxPrice) && (query += " AND c.Price <= $" + queryParams.length);
+        if (make) query += ` AND m.makename = $${queryParams.push(make)}`;
+        if (model) query += ` AND mo.modelname = $${queryParams.push(model)}`;
+        if (type) query += ` AND vt.typename = $${queryParams.push(type)}`;
+        if (year) query += ` AND c.year = $${queryParams.push(year)}`;
+        if (color) query += ` AND col.name = $${queryParams.push(color)}`;
+        if (minprice) query += ` AND c.price >= $${queryParams.push(minprice)}`;
+        if (maxprice) query += ` AND c.price <= $${queryParams.push(maxprice)}`;
 
         const result = await pool.query(query, queryParams);
 
