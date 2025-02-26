@@ -19,7 +19,7 @@ const PORT = process.env.PORT || 4000;
 // Sallitut frontend-alkuperät
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://car-marketplace-client-ebon.vercel.app/"
+  "https://car-marketplace-client-ebon.vercel.app"
 ];
 
 // CORS-middleware
