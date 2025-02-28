@@ -163,7 +163,17 @@ router.get('/countries', async (req, res) => {
 // Get all regions
 router.get('/regions', async (req, res) => {
     try {
-        const result = await pool.query("SELECT regionid, countryid, name FROM regions;");
+        const { countryid } = req.query;
+        let query = "SELECT regionid, countryid, name FROM regions";
+        const queryParams = [];
+
+        if (countryid) {
+            query += " WHERE countryid = $1";
+            queryParams.push(countryid);
+        }
+
+        query += " ORDER BY name ASC";
+        const result = await pool.query(query, queryParams);
         res.json(result.rows);
     } catch (err) {
         console.error("Error fetching regions:", err);
@@ -174,13 +184,24 @@ router.get('/regions', async (req, res) => {
 // Get all cities
 router.get('/cities', async (req, res) => {
     try {
-        const result = await pool.query("SELECT cityid, regionid, name FROM cities;");
+        const { regionid } = req.query;
+        let query = "SELECT cityid, regionid, name FROM cities";
+        const queryParams = [];
+
+        if (regionid) {
+            query += " WHERE regionid = $1";
+            queryParams.push(regionid);
+        }
+
+        query += " ORDER BY name ASC";
+        const result = await pool.query(query, queryParams);
         res.json(result.rows);
     } catch (err) {
         console.error("Error fetching cities:", err);
         res.status(500).json({ message: "Server error" });
     }
 });
+
 
 // Search endpoint
 router.get('/search', async (req, res) => {
