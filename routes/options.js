@@ -71,7 +71,7 @@ router.get('/colors', async (req, res) => {
 });
 
 // Get all drive types
-router.get('/drivetype', async (req, res) => {
+router.get('/drivetypes', async (req, res) => {
     try {
         const result = await pool.query("SELECT drivetypeid, name FROM drivetypes;");
         res.json(result.rows);
@@ -82,7 +82,7 @@ router.get('/drivetype', async (req, res) => {
 });
 
 // Get all fuel types
-router.get('/fueltype', async (req, res) => {
+router.get('/fueltypes', async (req, res) => {
     try {
         const result = await pool.query("SELECT fueltypeid, name FROM fueltypes;");
         res.json(result.rows);
@@ -93,7 +93,7 @@ router.get('/fueltype', async (req, res) => {
 });
 
 // Get all transmissions
-router.get('/transmission', async (req, res) => {
+router.get('/transmissions', async (req, res) => {
     try {
         const result = await pool.query("SELECT transmissionid, name FROM transmissions;");
         res.json(result.rows);
