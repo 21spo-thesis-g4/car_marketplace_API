@@ -8,8 +8,8 @@ import { authenticateToken } from "./middleware/auth.js";
 import adminRoutes from "./routes/admin.js";
 import optionsRoutes from "./routes/options.js";
 import carsRoutes from "./routes/cars.js";
-import uploadRoutes from "./routes/upload.js";
 import carTechnicalDetailsRoutes from "./routes/carTechnicalDetails.js";
+import uploadRoute from "./routes/upload.js"
 
 dotenv.config();
 
@@ -55,8 +55,8 @@ app.use("/register", registerRoutes);
 app.use("/admin", adminRoutes);
 app.use("/api/options", optionsRoutes);
 app.use("/cars", carsRoutes);
-app.use("/upload", uploadRoutes);
 app.use("/carTechnicalDetails", carTechnicalDetailsRoutes);
+app.use("/upload", uploadRoute)
 
 // Protected route
 app.get("/protected", authenticateToken, (req, res) => {

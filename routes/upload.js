@@ -1,33 +1,32 @@
 import express from "express";
 import multer from "multer";
-import { uploadImage } from "../upload.js";
+import { put } from "@vercel/blob";
 
 const router = express.Router();
-const upload = multer({
-    limits: { fileSize: 5 * 1024 * 1024 }, // Maksimikoko 5MB
-    fileFilter: (req, file, cb) => {
-        if (!file.mimetype.startsWith("image/")) {
-            return cb(new Error("Only image files are allowed!"), false);
-        }
-        cb(null, true);
-    }
-});
+
+// Configure multer to store files in memory
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 router.post("/", upload.single("file"), async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ error: "No file uploaded" });
-        }
-
-        const fileBuffer = req.file.buffer;
-        const filename = `${Date.now()}-${req.file.originalname}`;
-        const imageUrl = await uploadImage(fileBuffer, filename);
-
-        res.json({ url: imageUrl });
-    } catch (err) {
-        console.error("Upload error:", err);
-        res.status(500).json({ error: err.message });
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
     }
+
+    const fileBuffer = req.file.buffer;
+    const fileName = req.file.originalname;
+
+    // Upload the image to Vercel Blob Storage
+    const blob = await put(fileName, fileBuffer, {
+      access: "public",
+    });
+
+    return res.json({ url: blob.url });
+  } catch (error) {
+    console.error("Upload error:", error);
+    return res.status(500).json({ error: "Upload failed" });
+  }
 });
 
 export default router;

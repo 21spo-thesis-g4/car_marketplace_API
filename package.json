@@ -13,6 +13,7 @@
   "description": "",
   "dependencies": {
     "@azure/storage-blob": "^12.26.0",
+    "@vercel/blob": "^0.27.2",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
