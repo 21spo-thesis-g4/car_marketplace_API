@@ -52,9 +52,10 @@ router.get("/search", async (req, res) => {
         } = req.query;
 
         let query = `
-        SELECT cars.*, cartechnicaldetails.mileage
+        SELECT cars.*, cartechnicaldetails.mileage, images.url AS car_image
         FROM cars
         LEFT JOIN cartechnicaldetails ON cars.carid = cartechnicaldetails.carid
+        LEFT JOIN images ON cars.carid = images.carid AND images.isprimary = true
         WHERE 1=1
         `;
         const queryParams = [];
