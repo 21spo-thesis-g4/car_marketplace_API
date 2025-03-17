@@ -48,7 +48,7 @@ router.get("/search", async (req, res) => {
         const {
             typeid, subtypeid, makeid, modelid,
             minyear, maxyear, minmileage, maxmileage,
-            minprice, maxprice
+            minprice, maxprice, userid
         } = req.query;
 
         let query = `
@@ -60,6 +60,7 @@ router.get("/search", async (req, res) => {
         `;
         const queryParams = [];
 
+        if (userid) query += ` AND cars.userid = $${queryParams.push(userid)}`;
         if (typeid) query += ` AND cars.typeid = $${queryParams.push(typeid)}`;
         if (subtypeid) query += ` AND cars.subtypeid = $${queryParams.push(subtypeid)}`;
         if (makeid) query += ` AND cars.makeid = $${queryParams.push(makeid)}`;
